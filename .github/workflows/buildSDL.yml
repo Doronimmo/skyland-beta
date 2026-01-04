@@ -1,6 +1,8 @@
 name: Build
 
 on:
+  push:
+    branches: [ sdl_port ]
   workflow_dispatch:
 
 jobs:
