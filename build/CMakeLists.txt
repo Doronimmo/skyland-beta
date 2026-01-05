@@ -1051,10 +1051,9 @@ elseif(APPLE)
 
   find_package(SDL2_image REQUIRED)
   target_link_libraries(${EXECUTABLE_NAME} PRIVATE SDL2_image::SDL2_image)
-  find_package(SDL2 REQUIRED)
-  target_link_libraries(${EXECUTABLE_NAME} PRIVATE SDL2::SDL2)
+
   target_link_libraries(${EXECUTABLE_NAME} PRIVATE
-    "-framework Cocoa")
+    "-framework Cocoa -framework SDL2")
 
   set_target_properties(${EXECUTABLE_NAME}
     PROPERTIES
