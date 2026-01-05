@@ -21,7 +21,7 @@ jobs:
         run: |
           brew update
           brew install cmake sdl2 python3
-          pip3 install Pillow
+          pip3 --break-system-packages install Pillow
           
       - name: Build project
         run: |
