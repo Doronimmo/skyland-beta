@@ -20,8 +20,8 @@ jobs:
       - name: Install prerequisites
         run: |
           brew update
-          brew install cmake sdl2 python3 pipx
-          pipx install pillow
+          brew install cmake sdl2 python3
+          pip3 install Pillow
           
       - name: Build project
         run: |
