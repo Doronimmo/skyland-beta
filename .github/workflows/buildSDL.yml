@@ -23,7 +23,7 @@ jobs:
           brew install cmake sdl2 sdl2_image python3
           pip3 install Pillow --break-system-packages
           curl -L https://github.com/libsdl-org/SDL/releases/download/release-2.32.10/SDL2-2.32.10.dmg > SDL2.dmg
-          MOUNTDIR=$(echo `hdiutil mount jdk-7u51-macos-x64.dmg | tail -1 \
+          MOUNTDIR=$(echo `hdiutil mount SDL2.dmg | tail -1 \
           | awk '{$1=$2=""; print $0}'` | xargs -0 echo) \
           && sudo installer -pkg "${MOUNTDIR}/"*.pkg -target / 
 
