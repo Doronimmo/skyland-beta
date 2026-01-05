@@ -19,15 +19,16 @@ jobs:
 
       - name: Install prerequisites
         run: |
-          sudo apt-get update
-          sudo apt-get install -y git wget tar bzip2 python3 python3-pip cmake libsdl2-dev 
-          pip3 install pillow
+          brew update
+          brew install cmake sdl2 python3
+          python3 -m ensurepip --upgrade
+          python3 -m pip install pillow
           
       - name: Build project
         run: |
           cd build
           cmake . -DGAMEBOY_ADVANCE=OFF
-          make -j
+          make -j$(sysctl -n hw.ncpu)
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
