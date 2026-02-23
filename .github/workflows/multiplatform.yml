@@ -39,7 +39,7 @@ jobs:
     - name: Install Frameworks (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install homebrew/cask/sdl2 homebrew/cask/sdl2_image
+        brew install sdl2 sdl2_image
         # Note: If brew cask fails, we manually symlink or copy to /Library/Frameworks
         # to match your build system's hardcoded expectations.
 
