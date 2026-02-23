@@ -27,30 +27,23 @@ jobs:
       with:
         submodules: recursive
 
-    # --- LINUX SETUP ---
     - name: Install Dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential libsdl2-dev libsdl2-image-dev cmake ccache
 
-    # --- MACOS SETUP ---
-    # Your script expects frameworks in /Library/Frameworks
     - name: Install Frameworks (macOS)
       if: runner.os == 'macOS'
       run: |
         brew install sdl2 sdl2_image
         # Note: If brew cask fails, we manually symlink or copy to /Library/Frameworks
-        # to match your build system's hardcoded expectations.
 
-    # --- WINDOWS SETUP ---
-    # Your CMake expects SDL at the top level of C:\
     - name: Install SDL (Windows)
       if: runner.os == 'Windows'
       shell: powershell
       run: |
         file_path: "SDL2-devel-2.0.22-VC.zip"
-        # We download and extract specifically to C:\SDL2 to match your script
         Invoke-WebRequest -Uri "https://www.libsdl.org/release/SDL2-devel-2.0.22-VC.zip" -OutFile "SDL2.zip"
         Expand-Archive -Path "SDL2.zip" -DestinationPath "C:\"
         Move-Item "C:\SDL2-2.0.22" "C:\SDL2"
@@ -63,17 +56,11 @@ jobs:
     - name: Configure and Build
       shell: bash
       run: |
-        mkdir build && cd build
         if [ "${{ runner.os }}" == "Windows" ]; then
-          # Match your manual command: Visual Studio 16 2019, x64, GBA OFF
-          cmake .. -G "Visual Studio 16 2019" -A x64 -DGAMEBOY_ADVANCE=OFF
+          cmake . -G "Visual Studio 16 2019" -A x64 -DGAMEBOY_ADVANCE=OFF
           cmake --build . --config Release
         elif [ "${{ runner.os }}" == "macOS" ]; then
-          ../set-desktop-toolchain.sh
-          make
-        else
-          # Linux specific (using your original logic)
-          cmake .. -DGAMEBOY_ADVANCE=OFF
+          cmake . -DGAMEBOY_ADVANCE=OFF
           make -j$(nproc)
         fi
 
