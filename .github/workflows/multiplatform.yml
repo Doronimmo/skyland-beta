@@ -56,6 +56,7 @@ jobs:
     - name: Configure and Build
       shell: bash
       run: |
+        cd build
         if [ "${{ runner.os }}" == "Windows" ]; then
           cmake . -G "Visual Studio 16 2019" -A x64 -DGAMEBOY_ADVANCE=OFF
           cmake --build . --config Release
