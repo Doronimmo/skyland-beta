@@ -8,9 +8,9 @@ on:
     branches: [ main, master ]
 
 jobs:
-  build-and-test:
+  build-linux:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -27,7 +27,7 @@ jobs:
         key: ${{ runner.os }}-ccache-${{ hashFiles('**/CMakeLists.txt') }}
         restore-keys: |
           ${{ runner.os }}-ccache-
-          
+
     - name: Set up toolchain
       run: |
         cd build
@@ -36,7 +36,7 @@ jobs:
         ccache -z
         # Run cmake directly to avoid 'rm -rf CMakeFiles' inside 'set-desktop-toolchain.sh' to keep cache.
         cmake . -DGAMEBOY_ADVANCE=OFF -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-        
+
     - name: Build project
       run: |
         cd build
@@ -59,11 +59,70 @@ jobs:
           echo "regression failed — last line was: $last"
           exit 1
         fi
-        
-    
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       if: success()
       with:
         name: skyland-linux-build
         path: build/skyland/
+
+  build-windows:
+    runs-on: windows-2019
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install SDL2 libraries to C:\
+      shell: powershell
+      run: |
+        # get sdl libs
+        Invoke-WebRequest -Uri "https://github.com/libsdl-org/SDL/releases/download/release-2.30.0/SDL2-devel-2.30.0-VC.zip" -OutFile "sdl2.zip"
+        Expand-Archive -Path "sdl2.zip" -DestinationPath "C:\"
+        Invoke-WebRequest -Uri "https://github.com/libsdl-org/SDL_image/releases/download/release-2.8.2/SDL2_image-devel-2.8.2-VC.zip" -OutFile "sdl2_image.zip"
+        Expand-Archive -Path "sdl2_image.zip" -DestinationPath "C:\"
+
+        if (Test-Path "C:\SDL2-2.30.0") { Rename-Item -Path "C:\SDL2-2.30.0" -NewName "SDL2" }
+        if (Test-Path "C:\SDL2_image-2.8.2") { Rename-Item -Path "C:\SDL2_image-2.8.2" -NewName "SDL2_image" }
+
+    - name: Configure CMake
+      run: |
+        cmake -B build -G "Visual Studio 16 2019" -A x64 -DGAMEBOY_ADVANCE=OFF
+
+    - name: Build project (Release)
+      run: |
+        cmake --build build --config Release --parallel
+
+    - name: Copy Runtime DLLs
+      shell: powershell
+      run: |
+        $releaseDir = "build\Release"
+        if (-not (Test-Path $releaseDir)) { New-Item -ItemType Directory -Path $releaseDir }
+        
+        Get-ChildItem -Path "C:\" -Filter "*.dll" -Recurse | Copy-Item -Destination $releaseDir -Force
+
+        # If the target binary outputs inside build\skyland\Release instead:
+        if (Test-Path "build\skyland") {
+            $skylandRelease = "build\skyland\Release"
+            if (-not (Test-Path $skylandRelease)) { New-Item -ItemType Directory -Path $skylandRelease }
+            Get-ChildItem -Path "C:\" -Filter "*.dll" -Recurse | Copy-Item -Destination $skylandRelease -Force
+        }
+
+    - name: Encode files
+      run: |
+        cd build
+        python ..\tools\encode_files.py
+
+    - name: Upload Windows build artifacts
+      uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: skyland-windows-build
+        path: |
+          build/Release/
+          build/skyland/
